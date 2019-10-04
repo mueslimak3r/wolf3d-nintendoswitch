@@ -115,6 +115,7 @@ struct				s_mlx
 	t_map					map;
 };
 
+int         wolf_draw(t_mlx *stuff);
 t_RGB color_converter (int hexValue);
 void			move_player(t_mlx *mlx, double amount);
 int			create_map(t_mlx *stuff, std::string name);

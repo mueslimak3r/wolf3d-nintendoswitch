@@ -13,7 +13,7 @@ static void			rotate_v(double angle, t_vect_3 *v)
 	v->y = x * s + v->y * c;
 }
 
-static void			rotate_player(double angle, t_mlx *mlx)
+void			rotate_player(double angle, t_mlx *mlx)
 {
 	rotate_v(angle, &mlx->player.dir);
 	rotate_v(angle, &mlx->player.cam);

@@ -37,10 +37,10 @@ void	dda(t_mlx *mlx, t_vect_3 *line, int x, t_ray *ray)
             t_RGB c = color_converter(colors(ray->hit));
             SDL_SetRenderDrawColor(mlx->renderer, c.r, c.g, c.b, 255);
             SDL_RenderDrawPoint(mlx->renderer, x, y);
-            SDL_SetRenderDrawColor(mlx->renderer, 0, 0, 0, 255);
         }
         y++;
 	}
+	SDL_SetRenderDrawColor(mlx->renderer, 0, 0, 0, 255);
 }
 
 void	draw_column(int x, t_mlx *mlx, t_ray *ray)
@@ -122,4 +122,5 @@ int         wolf_draw(t_mlx *stuff)
     {
         cast(x, stuff);
     }
+	return (1);
 }

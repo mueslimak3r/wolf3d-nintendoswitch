@@ -2,15 +2,13 @@
 
 int         get_map(t_mlx *stuff, int nb)
 {
-    t_map   *map;
     int     ret = 0;
-    map = &stuff->map;
     if (stuff->map.matrix)
     {
         free(stuff->map.matrix);
         stuff->map.matrix = NULL;
     }
-    std::string files[1] = { "wold_maps/good.map" };
+    std::string files[1] = { "wolf3d_maps/good.map" };
     if (nb > -1 && nb < 1)
         ret = create_map(stuff, files[nb]);
     if (ret != 1)
@@ -27,15 +25,15 @@ t_RGB color_converter (int hexValue)
     return (rgbColor); 
 }
 
+/*
 void draw_line(t_mlx *stuff, SDL_Renderer *renderer, int x1, int y1, int x2, int y2)
 {
-    t_map *map = &stuff->map;
-
     t_RGB c = color_converter(0);
     SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, 255);
     //SDL_RenderDrawLine(renderer, (int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y);
     //SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 }
+*/
 
 int main(int argc, char *argv[])
 {
@@ -86,6 +84,7 @@ int main(int argc, char *argv[])
     stuff.h = h;
     stuff.w = w;
     stuff.renderer = renderer;
+    stuff.map.matrix = NULL;
     stuff.player.cam.x = 0.378560f;
 	stuff.player.cam.y = -0.540640f;
 	stuff.player.dir.x = 0.819152f;
@@ -93,7 +92,6 @@ int main(int argc, char *argv[])
 	stuff.player.movespeed = 0.1f;
     if (!(get_map(&stuff, chosen_map)))
         done = 1;
-    t_map *map = &stuff.map;
     while (!done) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
@@ -161,48 +159,14 @@ int main(int argc, char *argv[])
                             chosen_map = (chosen_map + 1 >= MAP_NB) ? 0 : chosen_map + 1;
                             if (!(get_map(&stuff, chosen_map)))
                             {
-                                if (stuff.map.v)
-                                    free(stuff.map.v);
+                                if (stuff.map.matrix)
+                                    free(stuff.map.matrix);
                                 SDL_DestroyRenderer(renderer);
                                 SDL_DestroyWindow(window);
                                 SDL_Quit();
                                 exit(0);
                             }
                         }
-                        else if (event.jbutton.button == 9) {
-                            // zoom in
-                            stuff.map.tile *= 1.2;
-                        }
-                        else if (event.jbutton.button == 8) {
-                            // zoom out
-                            stuff.map.tile *= 0.8;
-                        }
-                        else if (event.jbutton.button == 13) {
-                            // zoom in
-                            stuff.scale *= 1.2;
-                        }
-                        else if (event.jbutton.button == 15) {
-                            // zoom out
-                            stuff.scale *= 0.8;
-                        }
-                        /*
-                        else if (event.jbutton.button == 12) {
-                            // rotate left
-                            stuff.rot_offset.y += 0.06;
-                        }
-                        else if (event.jbutton.button == 14) {
-                            // rotate right
-                            stuff.rot_offset.y -= 0.06;
-                        }
-                        else if (event.jbutton.button == 13) {
-                            // rotate up
-                            stuff.rot_offset.x -= 0.06;
-                        }
-                        else if (event.jbutton.button == 15) {
-                            // rotate down
-                            stuff.rot_offset.x += 0.06;
-                        }
-                        */
                     }
                     break;
 
@@ -222,8 +186,8 @@ int main(int argc, char *argv[])
         wolf_draw(&stuff);
         SDL_RenderPresent(renderer);
     }
-    if (stuff.map.v)
-        free(stuff.map.v);
+    if (stuff.map.matrix)
+        free(stuff.map.matrix);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

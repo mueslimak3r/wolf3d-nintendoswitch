@@ -35,6 +35,72 @@ void draw_line(t_mlx *stuff, SDL_Renderer *renderer, int x1, int y1, int x2, int
 }
 */
 
+void wolf_init(SDL_Surface **surface, SDL_Texture **texture, SDL_Window **window, SDL_Renderer **renderer)
+{
+
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
+        SDL_Log("SDL_Init: %s\n", SDL_GetError());
+        exit (-1);
+    }
+
+    // create an SDL window (OpenGL ES2 always enabled)
+    // when SDL_FULLSCREEN flag is not set, viewport is automatically handled by SDL (use SDL_SetWindowSize to "change resolution")
+    // available switch SDL2 video modes :
+    // 1920 x 1080 @ 32 bpp (SDL_PIXELFORMAT_RGBA8888)
+    // 1280 x 720 @ 32 bpp (SDL_PIXELFORMAT_RGBA8888)
+    *window = SDL_CreateWindow("sdl2_gles2", 0, 0, 1280, 720, 0);
+    if (!*window) {
+        SDL_Log("SDL_CreateWindow: %s\n", SDL_GetError());
+        SDL_Quit();
+        exit (-1);
+    }
+
+    // create a renderer (OpenGL ES2)
+    *renderer = SDL_CreateRenderer(*window, 0, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!*renderer) {
+        SDL_Log("SDL_CreateRenderer: %s\n", SDL_GetError());
+        SDL_DestroyWindow(*window);
+        SDL_Quit();
+        exit (-1);
+    }
+
+    *surface = SDL_CreateRGBSurface(0, 1280, 720, 32, 0, 0, 0, 0);
+    if (!*surface)
+    {
+        SDL_Log("SDL_CreateRGBSurface: %s\n", SDL_GetError());
+        SDL_DestroyRenderer(*renderer);
+        SDL_DestroyWindow(*window);
+        SDL_Quit();
+        exit (-1);
+    }
+
+    *texture = SDL_CreateTextureFromSurface(*renderer, *surface);
+    if (!*texture)
+    {
+        SDL_Log("SDL_CreateTextureFromSurface: %s\n", SDL_GetError());
+        SDL_FreeSurface(*surface);
+        SDL_DestroyRenderer(*renderer);
+        SDL_DestroyWindow(*window);
+        SDL_Quit();
+        exit (-1);
+    }
+    // open CONTROLLER_PLAYER_1 and CONTROLLER_PLAYER_2
+    // when railed, both joycons are mapped to joystick #0,
+    // else joycons are individually mapped to joystick #0, joystick #1, ...
+    // https://github.com/devkitPro/SDL/blob/switch-sdl2/src/joystick/switch/SDL_sysjoystick.c#L45
+    for (int i = 0; i < 2; i++) {
+        if (SDL_JoystickOpen(i) == NULL) {
+            SDL_Log("SDL_JoystickOpen: %s\n", SDL_GetError());
+            SDL_DestroyTexture(*texture);
+            SDL_FreeSurface(*surface);
+            SDL_DestroyRenderer(*renderer);
+            SDL_DestroyWindow(*window);
+            SDL_Quit();
+            exit (-1);
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
     SDL_Event       event;
@@ -46,56 +112,7 @@ int main(int argc, char *argv[])
 
     int done = 0, w = 1280, h = 720;
     // mandatory at least on switch, else gfx is not properly closed
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
-        SDL_Log("SDL_Init: %s\n", SDL_GetError());
-        return -1;
-    }
-
-    // create an SDL window (OpenGL ES2 always enabled)
-    // when SDL_FULLSCREEN flag is not set, viewport is automatically handled by SDL (use SDL_SetWindowSize to "change resolution")
-    // available switch SDL2 video modes :
-    // 1920 x 1080 @ 32 bpp (SDL_PIXELFORMAT_RGBA8888)
-    // 1280 x 720 @ 32 bpp (SDL_PIXELFORMAT_RGBA8888)
-    window = SDL_CreateWindow("sdl2_gles2", 0, 0, 1280, 720, 0);
-    if (!window) {
-        SDL_Log("SDL_CreateWindow: %s\n", SDL_GetError());
-        SDL_Quit();
-        return -1;
-    }
-
-    // create a renderer (OpenGL ES2)
-    renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!renderer) {
-        SDL_Log("SDL_CreateRenderer: %s\n", SDL_GetError());
-        SDL_Quit();
-        return -1;
-    }
-    surface = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
-    if (!surface)
-    {
-        SDL_Log("SDL_CreateRGBSurface: %s\n", SDL_GetError());
-        SDL_Quit();
-        return (0);
-    }
-
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    if (!texture)
-    {
-        SDL_Log("SDL_CreateTextureFromSurface: %s\n", SDL_GetError());
-        SDL_Quit();
-        return (0);
-    }
-    // open CONTROLLER_PLAYER_1 and CONTROLLER_PLAYER_2
-    // when railed, both joycons are mapped to joystick #0,
-    // else joycons are individually mapped to joystick #0, joystick #1, ...
-    // https://github.com/devkitPro/SDL/blob/switch-sdl2/src/joystick/switch/SDL_sysjoystick.c#L45
-    for (int i = 0; i < 2; i++) {
-        if (SDL_JoystickOpen(i) == NULL) {
-            SDL_Log("SDL_JoystickOpen: %s\n", SDL_GetError());
-            SDL_Quit();
-            return -1;
-        }
-    }
+    wolf_init(&surface, &texture, &window, &renderer);
     int chosen_map = 0;
     stuff.h = h;
     stuff.w = w;

@@ -40,6 +40,8 @@ int main(int argc, char *argv[])
     SDL_Event       event;
     SDL_Window      *window;
     SDL_Renderer    *renderer;
+    SDL_Surface     *surface;
+    SDL_Texture     *texture;
     t_mlx           stuff;
 
     int done = 0, w = 1280, h = 720;
@@ -68,7 +70,21 @@ int main(int argc, char *argv[])
         SDL_Quit();
         return -1;
     }
+    surface = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
+    if (!surface)
+    {
+        SDL_Log("SDL_CreateRGBSurface: %s\n", SDL_GetError());
+        SDL_Quit();
+        return (0);
+    }
 
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    if (!texture)
+    {
+        SDL_Log("SDL_CreateTextureFromSurface: %s\n", SDL_GetError());
+        SDL_Quit();
+        return (0);
+    }
     // open CONTROLLER_PLAYER_1 and CONTROLLER_PLAYER_2
     // when railed, both joycons are mapped to joystick #0,
     // else joycons are individually mapped to joystick #0, joystick #1, ...
@@ -83,15 +99,20 @@ int main(int argc, char *argv[])
     int chosen_map = 0;
     stuff.h = h;
     stuff.w = w;
-    stuff.renderer = renderer;
     stuff.map.matrix = NULL;
+    stuff.player.x = 0;
+    stuff.player.y = 0;
     stuff.player.cam.x = 0.378560f;
 	stuff.player.cam.y = -0.540640f;
 	stuff.player.dir.x = 0.819152f;
 	stuff.player.dir.y = 0.573576f;
+
 	stuff.player.movespeed = 0.1f;
     if (!(get_map(&stuff, chosen_map)))
         done = 1;
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+    SDL_RenderPresent(renderer);
     while (!done) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
@@ -101,19 +122,19 @@ int main(int argc, char *argv[])
                             event.jaxis.axis, event.jaxis.value);
                     if( event.jaxis.which == 0 )
                     {
-                        const int JOYSTICK_DEAD_ZONE = 8000;
+                        const int JOYSTICK_DEAD_ZONE = 14000;
                         //X axis motion
                         if( event.jaxis.axis == 0 )
                         {
                             //Left of dead zone
                             if( event.jaxis.value < -JOYSTICK_DEAD_ZONE )
                             {
-                                rotate_player(5.0f / 180.0f * M_PI, &stuff);
+                                rotate_player(3.0f / 180.0f * M_PI, &stuff);
                             }
                             //Right of dead zone
                             else if( event.jaxis.value > JOYSTICK_DEAD_ZONE )
                             {
-                                rotate_player(-5.0f / 180.0f * M_PI, &stuff);
+                                rotate_player(-3.0f / 180.0f * M_PI, &stuff);
                             }
                         }
                         else if( event.jaxis.axis == 1 )
@@ -121,12 +142,12 @@ int main(int argc, char *argv[])
                                 //Below of dead zone
                                 if( event.jaxis.value < -JOYSTICK_DEAD_ZONE )
                                 {
-                                    move_player(&stuff, -stuff.player.movespeed);
+                                    move_player(&stuff, stuff.player.movespeed);
                                 }
                                 //Above of dead zone
                                 else if( event.jaxis.value > JOYSTICK_DEAD_ZONE )
                                 {
-                                    move_player(&stuff, stuff.player.movespeed);
+                                    move_player(&stuff, -stuff.player.movespeed);
                                 }
                         }
                     }
@@ -174,16 +195,15 @@ int main(int argc, char *argv[])
                     break;
             }
         }
-
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-
-        // fill window bounds
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_GetWindowSize(window, &w, &h);
-        SDL_Rect f = {0, 0, w, h};
-        SDL_RenderFillRect(renderer, &f);
+        stuff.pixels = (uint32_t *)surface->pixels;
+        memset(stuff.pixels, 0, w * h * sizeof(uint32_t));
+
         wolf_draw(&stuff);
+
+        SDL_UpdateTexture(texture, nullptr, surface->pixels, surface->pitch);
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, texture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
     }
     if (stuff.map.matrix)

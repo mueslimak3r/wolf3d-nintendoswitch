@@ -110,7 +110,6 @@ struct				s_mlx
 	int						h;
 	t_image					*tex[TEXTURE_NB];
 	uint32_t				*pixels;
-	SDL_Renderer			*renderer;
 	t_player				player;
 	t_map					map;
 };

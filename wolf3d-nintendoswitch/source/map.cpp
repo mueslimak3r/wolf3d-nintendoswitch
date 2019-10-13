@@ -94,6 +94,9 @@ static int	splint(t_mlx *mlx, int row, char **strs)
 
 	fail = false;
 	i = -1;
+	if (row != 0 && row != mlx->map.height - 1 &&
+		(*strs[0] != '1' || *(strs[mlx->map.width - 1]) != '1'))
+		fail = true;
 	while (++i < mlx->map.width)
 	{
 		//map->matrix[map->width * row + i] = atoi(strs[i]);
@@ -103,7 +106,7 @@ static int	splint(t_mlx *mlx, int row, char **strs)
 			+ (mlx->map.width * row + i)) != 1)
 			fail = true;
 		if (*((mlx->map.matrix) + (mlx->map.width * row + i)) == 0 &&
-			!mlx->player.x && !mlx->player.y)
+			mlx->player.x == 0 && mlx->player.y == 0)
 		{
 			mlx->player.x = i + 0.5f;
 			mlx->player.y = row + 0.5f;

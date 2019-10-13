@@ -15,6 +15,23 @@ int		colors(int i)
 	return (rgb[i % 62]);
 }
 
+uint32_t    make_color(int hexValue)
+{
+    uint32_t ret;
+    ret = hexValue >> 16; // r
+    ret <<= 16;
+    ret |= (hexValue & 0x00ff00) >> 8; // g
+    ret <<= 16;
+    ret |= (hexValue & 0x0000ff); //b
+    ret |= 255; // a
+    /*
+    rgbColor.r = hexValue >> 16;//((hexValue >> 16) & 0xFF) / 255.0; // Extract the RR byte
+    rgbColor.g = (hexValue & 0x00ff00) >> 8;//((hexValue >> 8) & 0xFF) / 255.0; // Extract the GG byte
+    rgbColor.b = (hexValue & 0x0000ff);//((hexValue) & 0xFF) / 255.0; // Extract the BB byte
+    */
+    return (ret);
+}
+
 void	dda(t_mlx *mlx, t_vect_3 *line, int x, t_ray *ray)
 {
 	int	y;
@@ -33,14 +50,16 @@ void	dda(t_mlx *mlx, t_vect_3 *line, int x, t_ray *ray)
 		else
         */
         if (x < mlx->w && x >= 0 && y < mlx->h && y >= 0)
-		{    //mlx->pixels[mlx->w * y + x] = colors(ray->hit);
-            t_RGB c = color_converter(colors(ray->hit));
-            SDL_SetRenderDrawColor(mlx->renderer, c.r, c.g, c.b, 255);
-            SDL_RenderDrawPoint(mlx->renderer, x, y);
+		{
+			mlx->pixels[mlx->w * y + x] = make_color(colors(ray->hit));
+			//mlx->pixels[mlx->w * y + x] = colors(ray->hit);
+            //t_RGB c = color_converter(colors(ray->hit));
+            //SDL_SetRenderDrawColor(mlx->renderer, c.r, c.g, c.b, 255);
+            //SDL_RenderDrawPoint(mlx->renderer, x, y);
         }
         y++;
 	}
-	SDL_SetRenderDrawColor(mlx->renderer, 0, 0, 0, 255);
+	//SDL_SetRenderDrawColor(mlx->renderer, 0, 0, 0, 255);
 }
 
 void	draw_column(int x, t_mlx *mlx, t_ray *ray)
@@ -111,8 +130,8 @@ void				cast(int col, t_mlx *mlx)
 		(ray.my + 1.0f - p->y) * ray.deltay;
 	step_ray(&ray, p, mlx);
 	ray.wall -= floor(ray.wall);
-	if (ray.texture)
-		ray.tex_pos.x = (int)(ray.wall * ray.texture->width);
+	//if (ray.texture)
+	//	ray.tex_pos.x = (int)(ray.wall * ray.texture->width);
 	draw_column(col, mlx, &ray);
 }
 

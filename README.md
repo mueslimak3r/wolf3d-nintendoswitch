@@ -1,7 +1,7 @@
 # wolf3d-nintendoswitch
 Nintendo Switch port of my 42 wolf3d graphics project
 
-<img src="https://imgur.com/gallery/K3NSJeh"/>
+<img src="https://i.imgur.com/9Vsp036.jpg"/>
 
 # how to use
 

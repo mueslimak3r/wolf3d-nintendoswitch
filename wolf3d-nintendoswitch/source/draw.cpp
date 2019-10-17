@@ -32,6 +32,14 @@ uint32_t    make_color(int hexValue)
     return (ret);
 }
 
+uint32_t	texture_pixel(int x, int y, t_ray *ray, t_mlx *mlx)
+{
+	if (x < 0 || y < 0 || x >= ray->obj_hit->w || y >= ray->obj_hit->h)
+		return (0);
+	return (*(uint32_t*)((uint32_t*)ray->obj_hit->pixels + ((x + y * ray->obj_hit->h) *
+		ray->obj_hit->pitch)));
+}
+
 void	dda(t_mlx *mlx, t_vect_3 *line, int x, t_ray *ray)
 {
 	int	y;
@@ -51,6 +59,16 @@ void	dda(t_mlx *mlx, t_vect_3 *line, int x, t_ray *ray)
         */
         if (x < mlx->w && x >= 0 && y < mlx->h && y >= 0)
 		{
+			/*
+			if (ray->obj_hit)
+			{
+				ray->tex_pos.y = ((y - mlx->h * 0.5f + ray->height * 0.5f) *
+				ray->obj_hit->h) / ray->height;
+				mlx->pixels[mlx->w * y + x] = texture_pixel(ray->tex_pos.x,
+					ray->tex_pos.y, ray, mlx);
+			}
+			else
+			*/
 			mlx->pixels[mlx->w * y + x] = make_color(colors(ray->hit));
 			//mlx->pixels[mlx->w * y + x] = colors(ray->hit);
             //t_RGB c = color_converter(colors(ray->hit));
@@ -104,8 +122,8 @@ void				step_ray(t_ray *ray, t_player *p, t_mlx *mlx)
 	/ ray->dirx : (ray->my - p->y + (1.0 - ray->stepy) / 2.0) / ray->diry;
 	ray->wall = (ray->side ? p->x + ray->dist * ray->dirx :
 		p->y + ray->dist * ray->diry);
-	ray->texture = NULL;//USE_TEX && ray->hit && ray->hit < 6
-	//	? mlx->tex[ray->hit] : NULL;
+	//ray->obj_hit = USE_TEX && ray->hit && ray->hit < 6
+	//				? mlx->sdl_data.obj_surface[ray->hit] : nullptr;
 }
 
 void				cast(int col, t_mlx *mlx)
@@ -130,8 +148,8 @@ void				cast(int col, t_mlx *mlx)
 		(ray.my + 1.0f - p->y) * ray.deltay;
 	step_ray(&ray, p, mlx);
 	ray.wall -= floor(ray.wall);
-	//if (ray.texture)
-	//	ray.tex_pos.x = (int)(ray.wall * ray.texture->width);
+	//if (ray.obj_hit)
+	//	ray.tex_pos.x = (int)(ray.wall * ray.obj_hit->w);
 	draw_column(col, mlx, &ray);
 }
 

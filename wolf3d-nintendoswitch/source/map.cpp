@@ -158,5 +158,51 @@ int			create_map(t_mlx *stuff, std::string name)
 		i++;
 	}
 	file.close();
+	/*
+	if (!get_textures(stuff))
+	{
+		free(stuff->map.matrix);
+		return (0);
+	}
+	*/
+	return (1);
+}
+
+SDL_Surface	*img_to_sdl(std::string name, t_mlx *mlx)
+{
+	SDL_Surface		*obj_surface;
+	
+	if (!(obj_surface = IMG_Load(name.c_str())))
+		return (NULL);
+	obj_surface = SDL_ConvertSurfaceFormat(obj_surface, SDL_GetWindowPixelFormat(mlx->sdl_data.window), 0);
+	return (obj_surface);
+}
+
+int		get_textures(t_mlx *mlx)
+{
+	static std::string files[TEXTURE_NB] = { "wolf_data/textures/brick_hi.xpm",
+		"wolf_data/textures/wood_hi.xpm", "wolf_data/textures/metal_hi.xpm",
+		"wolf_data/textures/stone_hi.xpm", "wolf_data/textures/grass_hi.xpm",
+		"wolf_data/textures/brick_hi.xpm" };
+	int			i;
+
+	i = 0;
+	while (i < TEXTURE_NB)
+		if (!(mlx->sdl_data.obj_surface[i] = img_to_sdl(files[i], mlx)))
+		{
+			if (i > 1)
+			{
+				while (i >= 1)
+				{
+					SDL_FreeSurface(mlx->sdl_data.obj_surface[i]);
+					//del_image(mlx, mlx->tex[i++]);
+					i--;
+				}
+			}
+			return (0);
+		}
+		else
+			i++;
+	//mlx->sdl_data.obj_surface[0] = nullptr;
 	return (1);
 }
